@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 # Create your models here.
 
 class Genre(models.Model):
-    name= models.CharField(max_length=50, help_text="Genre")
+    name= models.CharField(max_length=200, help_text="Genre")
     
     def __str__(self):
         return self.name
@@ -38,10 +38,10 @@ class Book(models.Model):
     def __str__(self):
         return self.title
 
-class BookInstance(models.model):
+class BookInstance(models.Model):
     id= models.UUIDField(primary_key= True, default=uuid.uuid4, help_text= "Unique ID for this particular book")
     book= models.ForeignKey('Book', on_delete= models.SET_NULL, null= True)
-    imprint= models.CharField(max_length)
+    imprint= models.CharField(max_length= 200)
     due_back= models.DateField(null= True, blank= True)
     borrower= models.ForeignKey(User, on_delete= models.SET_NULL, null= True, blank= True)
 
@@ -58,12 +58,27 @@ class BookInstance(models.model):
         ('o', 'On loan')
     )
 
-    status= models.CharField(max_length= 1, choice= Loan_statuses, blank= True, default= 'd', help_text= 'Book Availability')
+    status= models.CharField(max_length= 1, choices= Loan_statuses, blank= True, default= 'm', help_text= 'Book Availability')
 
     class Meta:
         ordering= ['due_back']
-        permissions= ()
+        permissions= (('can_mark_returned', 'Set book as returned'),)
 
+    def __str__(self):
+        return '{0} ({1})'.format(self.id, self.book.title)
 
+class Author(models.Model):
+    first_name= models.CharField(max_length= 50)
+    last_name= models.CharField(max_length= 50)
+    date_of_birth= models.DateField(null= True, blank= True)
+    date_of_death= models.DateField('died', null= True, blank= True)
+
+    class Meta:
+        ordering= ['last_name', 'first_name']
+
+    def get_absolute_url(self):
+        return reverse('author_detail', args= [str(self.id)])
+
+    def __str__(self):
+        return '{0}, {1}'. format(self.last_name, self.first_name)
     
-
